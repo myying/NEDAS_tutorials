@@ -1,31 +1,25 @@
-FROM python:3.13-slim
+# Use the official Onyxia Python image (verify the version you need)
+FROM inseefrlab/onyxia-jupyter-python
 
-# Install MPICH + build tools
-RUN apt-get update && apt-get install -y \
+# 1. Switch to root to install system dependencies
+USER root
+
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+    build-essential \
     mpich \
     libmpich-dev \
-    build-essential \
+    libfftw3-dev \
+    git \
     && rm -rf /var/lib/apt/lists/*
 
-# Install Jupyter + mpi4py
-RUN pip install --no-cache-dir jupyter notebook mpi4py
+# 2. Switch back to the Onyxia default user (1000)
+# This is crucial for Onyxia/Kubernetes permissions
+USER 1000
+WORKDIR /home/onyxia
 
-# Create a non-root user for Onyxia compatibility
-RUN useradd -m -s /bin/bash onyxia
-RUN mkdir -p /home/onyxia/work
-RUN chown -R onyxia:onyxia /home/onyxia
+# 3. Install mpi4py and other libraries
+# We compile mpi4py from source to link it with the system MPICH
+RUN MPICC=mpicc pip install --no-cache-dir --no-binary=mpi4py mpi4py && \
+    pip install --no-cache-dir numba pyFFTW
 
-USER onyxia
-WORKDIR /home/onyxia/work
-
-# Copy init script and ensure it's executable (if you have sudo/root needs, do this before USER)
-COPY --chown=onyxia:onyxia onyxia-init.sh /opt/onyxia-init.sh
-COPY --chown=onyxia:onyxia onyxia-set-repositories.sh /opt/onyxia-set-repositories.sh
-RUN chmod +x /opt/onyxia-init.sh
-RUN chmod +x /opt/onyxia-set-repositories.sh
-
-# Expose Jupyter port
-EXPOSE 8888
-
-# Start Jupyter - removed --allow-root since we are using the 'onyxia' user
-CMD ["jupyter", "notebook", "--ip=0.0.0.0", "--port=8888", "--no-browser"]
