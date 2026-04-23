@@ -9,13 +9,15 @@ job_submit:
   ppn: 8
   parallel_mode: mpi
 
-nproc: 8
+nproc: 1
+nproc_util: 8
 
 nens: 16
 run_forecast: True
 run_analysis: True
 run_diagnose: False
 debug: False
+call_stack_max_level:
 
 time_start: 2001-01-01 00:00:00
 time_end: 2001-01-03 00:00:00

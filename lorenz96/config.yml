@@ -39,6 +39,8 @@ state_def:
 model_def:
   lorenz96:
     config_file:
+    dt: 0.05
+    
     nproc_per_run: 1
     ens_run_strategy: scheduler
     ens_init_dir: '{work_dir}/init_ens'
