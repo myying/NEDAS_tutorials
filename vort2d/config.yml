@@ -1,8 +1,8 @@
-work_dir: vort2d
+work_dir: vort2d/work
 
 python_env:
 
-io_mode: online
+io_mode: offline
 
 job_submit:
   host: local
@@ -42,7 +42,7 @@ model_def:
   vort2d:
     config_file: '{nedas_root}/models/vort2d/default.yml'
     ens_run_strategy: scheduler
-    ens_init_dir: '{work_dir}/init_run'
+    ens_init_dir: '{work_dir}/init_ens'
     truth_dir: '{work_dir}/truth'
 
 obs_def:
