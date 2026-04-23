@@ -17,7 +17,7 @@ run_forecast: True
 run_analysis: True
 run_diagnose: False
 debug: False
-call_stack_max_level:
+call_stack_max_level: 2
 
 time_start: 2001-01-01 00:00:00
 time_end: 2001-01-03 00:00:00
@@ -43,6 +43,12 @@ state_def:
 model_def:
   vort2d:
     config_file: '{nedas_root}/models/vort2d/default.yml'
+    nx: 50
+    ny: 50
+    dx: 10000
+    dt: 90
+    gen: 5e-5
+    diss: 3e3
     ens_run_strategy: scheduler
     ens_init_dir: '{work_dir}/init_ens'
     truth_dir: '{work_dir}/truth'
