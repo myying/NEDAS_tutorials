@@ -48,10 +48,11 @@ RUN apt-get update && \
 ARG USER_ID=1000
 ARG GROUP_ID=1000
 RUN groupadd -g ${GROUP_ID} appgroup && \
-    useradd -u ${USER_ID} -g appgroup -d /home/appuser -s /bin/bash appuser
+    useradd -m -u ${USER_ID} -g appgroup -d /home/appuser -s /bin/bash appuser && \
+    chown -R ${USER_ID}:${GROUP_ID} /home/appuser
 
-COPY --from=builder /opt/py /opt/py
-COPY --from=builder /opt/NEDAS /home/appuser/NEDAS
+COPY --from=builder --chown=${USER_ID}:${GROUP_ID} /opt/py /opt/py
+COPY --from=builder --chown=${USER_ID}:${GROUP_ID} /opt/NEDAS /home/appuser/NEDAS
 COPY --from=builder \
     /opt/intel/oneapi/compiler/latest/lib/libimf.so \
     /opt/intel/oneapi/compiler/latest/lib/libintlc.so \
@@ -61,21 +62,18 @@ COPY --from=builder \
     /usr/local/lib/
 COPY --from=builder /lib/x86_64-linux-gnu/libfftw3.so /lib/x86_64-linux-gnu/
 
-RUN chown -R ${USER_ID}:${GROUP_ID} /home/appuser /opt/py
-
 # Switch to the new user
 USER appuser
 
 ENV PATH=/opt/py/bin:$PATH
 ENV LD_LIBRARY_PATH=/usr/local/lib:/lib/x86_64-linux-gnu
-ENV SHELL=/bin/bash
 
-RUN pip install -e /home/appuser/NEDAS
+RUN pip install --no-cache-dir -e /home/appuser/NEDAS
 
 # clone the tutorials repo
-RUN git clone https://github.com/myying/NEDAS_tutorials.git /home/appuser/NEDAS_tutorials
+RUN git clone https://github.com/myying/NEDAS_tutorials.git /home/appuser/work/NEDAS_tutorials
 
-WORKDIR /home/appuser/NEDAS_tutorials
+WORKDIR /home/appuser/work/NEDAS_tutorials
 
 EXPOSE 8888
 
