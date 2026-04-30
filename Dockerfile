@@ -77,6 +77,8 @@ WORKDIR /home/appuser/work/NEDAS_tutorials
 
 EXPOSE 8888
 
+ENV SHELL=/bin/bash
+
 # Default command
-CMD ["jupyter", "lab", "--ip=0.0.0.0", "--port=8888", "--no-browser"]
+CMD ["sh", "-c", "jupyter lab --ip=0.0.0.0 --port=8888 --no-browser --ServerApp.token=\"${JUPYTER_TOKEN:-}\" --ServerApp.password=''"]
 
