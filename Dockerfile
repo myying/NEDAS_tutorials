@@ -24,7 +24,7 @@ WORKDIR /opt/NEDAS
 RUN python3 -m venv /opt/py
 ENV PATH=/opt/py/bin:$PATH
 RUN pip3 install -r /opt/NEDAS/requirements.txt && \
-    pip3 install --no-cache-dir numba pyFFTW jupyter && \
+    pip3 install --no-cache-dir numba pyFFTW jupyter cmocean ipywidgets && \
     MPICC=mpicc pip3 install --no-cache-dir --no-binary=mpi4py mpi4py
 
 # Build qg model
