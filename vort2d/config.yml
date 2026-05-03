@@ -70,6 +70,7 @@ dataset_def:
     obs_window_min: -3
     obs_window_max: 0
     network_type: global
+    obs_range: 1e5
 
 perturb:
 
