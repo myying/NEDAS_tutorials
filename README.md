@@ -9,8 +9,9 @@ In this series of jupyter notebook tutorials, I demonstrate how to use NEDAS to 
 
 To run the notebooks, you can use one of these options:
 [EDITO Datalab](https://datalab.dive.edito.eu/launcher/ide/jupyter-python?name=NEDAS_tutorials&version=2.4.6&s3=region-7e02ff37&git.repository=«https%3A%2F%2Fgithub.com%2Fmyying%2FNEDAS_tutorials»&git.branch=«main»&autoLaunch=true),
-[Google Colab](https://colab.research.google.com/github/myying/NEDAS_tutorials/).
-or [Run in Docker](https://hub.docker.com/r/myying/nedas-tutorials).
+[Google Colab](https://colab.research.google.com/github/myying/NEDAS_tutorials/),
+[Run in Docker](https://hub.docker.com/r/myying/nedas-tutorials),
+or [Run in native environment](https://github.com/myying/NEDAS_tutorials/blob/main/python_env_setup.md).
 
 A summary of purpose of each notebook:
 - [1.step_by_step_with_vort2d_case.ipynb](https://github.com/myying/NEDAS_tutorials/blob/main/1.step_by_step_with_vort2d_case.ipynb) provides a step-by-step guide to running DA experiments using a simple 2D vorticity model as example.
