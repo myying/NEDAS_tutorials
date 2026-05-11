@@ -1,3 +1,4 @@
+import os
 import numpy as np
 from datetime import timedelta
 import matplotlib.pyplot as plt
@@ -79,11 +80,7 @@ def plot_sawtooth_ts(ax, n, hours, rmse_ts, sprd_ts):
     ax.set_ylabel(r'$m/s$')
     ax.grid()
 
-import base64
-import ipywidgets as widgets
-from PIL import Image
-from IPython.display import HTML, display, clear_output
-from NEDAS.utils.graphics import add_colorbar, adjust_ax_size
+#from NEDAS.utils.graphics import add_colorbar, adjust_ax_size
 
 def get_hours(c):
     times = get_times(c)
@@ -98,6 +95,8 @@ def get_time_id_for_plot(c):
         return [times.index(t) for t in np.unique(times)]
 
 def plot_ens_error_sprd(casename, c, truth_state, ens_state):
+    os.makedirs("vort2d/work/plots", exist_ok=True)
+
     # compute rmse and ensemble spread
     Xt = np.array(truth_state)
     Xens = np.array(ens_state)
@@ -112,18 +111,19 @@ def plot_ens_error_sprd(casename, c, truth_state, ens_state):
         plot_vorticity_map(ax[0], c, n, hours, Xt, Xens)
         plot_spectrum(ax[1], c.grid, n, hours, Xt, Xens)
         plot_sawtooth_ts(ax[2], n, hours, rmse_ts, sprd_ts)
-        plt.savefig(f"vort2d/work/plots/{casename}_diag_{i+1:02}.png")
+        plt.savefig(f"vort2d/work/plots/{casename}_{i+1:02}.png")
         plt.close()
 
 def make_animation(casename, c):
+    from PIL import Image
     t_ids = get_time_id_for_plot(c)
     frames = []
     for i,_ in enumerate(t_ids):
-        path = f"vort2d/work/plots/{casename}_diag_{i+1:02d}.png"
+        path = f"vort2d/work/plots/{casename}_{i+1:02d}.png"
         frames.append(Image.open(path))
-    
+
     # Save as GIF
-    frames[-1].save(f'vort2d/{casename}_diag_animation.gif',
+    frames[-1].save(f'vort2d/{casename}_animation.gif',
                    save_all=True,
                    append_images=frames[0:],
                    optimize=False,
@@ -131,6 +131,9 @@ def make_animation(casename, c):
                    loop=0)
 
 def interactive_animator(casename, c):
+    import base64
+    import ipywidgets as widgets
+    from IPython.display import HTML, display, clear_output
     t_ids = get_time_id_for_plot(c)
 
     # 1. Create the Slider
@@ -147,7 +150,7 @@ def interactive_animator(casename, c):
     def update_frame(change):
         i = change['new']
         # Construct the path we know exists
-        img_path = f"vort2d/work/plots/{casename}_diag_{i:02d}.png"
+        img_path = f"vort2d/work/plots/{casename}_{i:02d}.png"
 
         with out:
             clear_output(wait=True)
