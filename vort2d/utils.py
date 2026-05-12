@@ -1,3 +1,4 @@
+import numpy as np
 from datetime import timedelta
 
 def get_truth(c, t):
@@ -24,7 +25,7 @@ def get_model_ens(c, t):
     ens = []
     for m in range(c.config.nens):
         ens.append(get_model_state(c, t, m))
-    return ens
+    return np.array(ens)    
 
 def get_times(c):
     model = c.models['vort2d']
@@ -48,4 +49,4 @@ def get_time_series(c, func):
             time_series.append(func(c, t))
             t += model.restart_dt * timedelta(hours=1)
         c.time = c.next_time
-    return time_series
+    return np.array(time_series)
