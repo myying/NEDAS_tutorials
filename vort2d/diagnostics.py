@@ -35,28 +35,30 @@ def variance_spec(Xens):
         sprd_pwr.append(np.sum(pwr_ens, axis=0) / (nens-1))
     return wn, np.array(sprd_pwr)
 
-def get_ens_corr(c, grid):
+def ens_corr(X, Y):
+    nens = X.shape[0]
+    assert Y.shape[0] == nens
+
+    cov = np.zeros(X.shape[1:]+Y.shape[1:])
+    varX = np.zeros(X.shape[1:])
+    varY = np.zeros(Y.shape[1:])
+
     # compute correlation
-    fld_prior_ens = np.zeros((c.config.nens,)+c.grid.x.shape)
-    for m in range(c.config.nens):
-        fld_prior_ens[m,...] = c.state.fields_prior[m,0][0,...]
-    fld_prior_mean = np.mean(fld_prior_ens, axis=0)
+    X_mean = np.mean(X, axis=0)
+    Y_mean = np.mean(Y, axis=0)
 
-    obs_prior_ens = np.array([c.obs.obs_prior[m,0][0] for m in range(c.config.nens)])
-    obs_prior_mean = np.mean(obs_prior_ens, axis=0)
+    for m in range(nens):
+        cov += (X[m,...] - X_mean) * (Y[m,...] - Y_mean)
+        varX += (X[m,...] - X_mean)**2
+        varY += (Y[m,...] - Y_mean)**2
+    cov /= nens-1
+    varX /= nens-1
+    varY /= nens-1
 
-    cov = np.zeros(grid.x.shape)
-    fld_prior_var = np.zeros(grid.x.shape)
-    obs_prior_var = 0
-    for m in range(c.config.nens):
-        cov += ((fld_prior_ens[m,...] - fld_prior_mean) * (obs_prior_ens[m] - obs_prior_mean))
-        fld_prior_var += (fld_prior_ens[m,...] - fld_prior_mean)**2
-        obs_prior_var += (obs_prior_ens[m] - obs_prior_mean)**2
-    cov /= c.config.nens-1
-    fld_prior_var /= c.config.nens-1
-    obs_prior_var /= c.config.nens-1
+    varX = np.atleast_1d(varX)
+    varX[np.where(varX==0)] = 1e-10
+    varY = np.atleast_1d(varY)
+    varY[np.where(varY==0)] = 1e-10
 
-    fld_prior_var[np.where(fld_prior_var==0)] = 1e-10
-
-    corr = cov / np.sqrt(fld_prior_var * obs_prior_var)
+    corr = cov / np.sqrt(varX * varY)
     return corr

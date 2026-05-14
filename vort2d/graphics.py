@@ -1,6 +1,7 @@
 import numpy as np
 from datetime import timedelta
 import matplotlib.pyplot as plt
+import matplotlib.gridspec as gridspec
 from NEDAS.utils.graphics import add_colorbar, adjust_ax_size
 
 from .diagnostics import rmse, sprd, pwrspec2d, variance_spec
@@ -14,10 +15,15 @@ vort_min = -5e-3
 vort_max = 5e-3
 vort_intv = 1e-3
 vort_highlights = [-1e-3, 1e-3]
+# velocity plotting parameters
+vel_scale = 30
+len_scale = 5e4
+# correlation
+corr_cmap = getattr(cmocean.cm, 'balance')
 
-# compute vorticity (1/s) from velocity (m/s)
 from NEDAS.utils.spatial_operation import gradx, grady
 def uv2zeta(grid, vel):
+    # compute vorticity (1/s) from velocity (m/s)
     u, v = vel[0], vel[1]
     zeta = gradx(v, grid.dx, grid.cyclic_dim) - grady(u, grid.dy, grid.cyclic_dim)
     zeta[np.where(zeta>vort_max)] = vort_max
@@ -34,21 +40,29 @@ def set_map_axis(ax, grid):
     ax.set_ylabel(r'$y$ (km)')
     ax.set_aspect('equal')
 
-def plot_ens_cov(ax, c, n, hours, Xt, Xens):
-    vort_truth = uv2zeta(c.grid, Xt[n])
-    vort_ens_mean = uv2zeta(c.grid, np.mean(Xens[n], axis=0))
-    ens_cov = (vort_ens_mean - vort_truth)**2
-    im = ax.contourf(c.grid.x, c.grid.y, ens_cov, cmap='Reds')
-    ax.set_title(f"ensemble covariance $t$={hours[n]:02}h")
-    set_map_axis(ax, c.grid)
-    plt.colorbar(im, ax=ax, label=r'$(\overline{\zeta_{ens}} - \zeta_{truth})^2$')
-
-def plot_velocity_map(fig, ax, c, hour, state, vmax=20, color=[.7,.7,.7], showref=True):
-    L = c.grid.Lx/10
-    c.grid.plot_vectors(ax, state, V=vmax, L=L, linecolor=color, num_steps=5, showref=showref)
+def plot_velocity_map(ax, c, hour, state, color=[.7,.7,.7], showref=True):
+    c.grid.plot_vectors(ax, state, V=vel_scale, L=len_scale, linecolor=color, num_steps=5, showref=showref, ref_units='m/s')
     ax.set_title(f"Velocity $t$={hour:02}h")
     set_map_axis(ax, c.grid)
     adjust_ax_size(ax,0.8,0.8,0.05)
+
+def add_obs_marker(ax, obs_x, obs_y):
+    # show marker at obs location
+    ax.plot(obs_x, obs_y, color='r', marker='o', markersize=6, markerfacecolor='w', markeredgewidth=1.5)
+
+def add_state_marker(ax, grid, i, j):
+    x, y = grid.x[j,i], grid.y[j,i]
+    ax.plot(x, y, color='k', marker='s', markersize=4, markerfacecolor='w', markeredgewidth=1.5)
+
+def plot_velocity_obs(ax, grid, obs_val, obs_x, obs_y):
+    grid.plot_scatter(ax, obs_val, is_vector=True, linecolor='r', x=obs_x, y=obs_y, vmax=vel_scale, L=len_scale, units='m/s')
+
+def plot_var_on_map(fig, ax, c, title, var, var_min, var_max, var_intv, var_cmap, var_units):
+    c.grid.plot_field(ax, var, vmin=var_min, vmax=var_max, cmap=var_cmap)
+    ax.set_title(title)
+    set_map_axis(ax, c.grid)
+    adjust_ax_size(ax,0.8,0.8,0.05)
+    add_colorbar(fig, ax, var_cmap, var_min, var_max, int((var_max - var_min) / var_intv), units=var_units, fontsize=8)
 
 def plot_vorticity_map(fig, ax, c, hour, state, colorbar=False):
     vort = uv2zeta(c.grid, state)
@@ -60,9 +74,8 @@ def plot_vorticity_map(fig, ax, c, hour, state, colorbar=False):
     units = f'{vort_intv}'+ r' $\mathregular{s^{-1}}$'
     if colorbar:
         adjust_ax_size(ax,0.8,0.8,0.05)
-        add_colorbar(fig, ax, vort_cmap, vort_min/vort_intv, vort_max/vort_intv, nlevels, units=units, fontsize=10)
+        add_colorbar(fig, ax, vort_cmap, vort_min/vort_intv, vort_max/vort_intv, nlevels, units=units, fontsize=8)
 
-# true vorticity map, highlighted contour in black, and ensemble members in colors
 def plot_vorticity_spaghetti(fig, ax, c, hour, ref_state, ens_states):
     vort_ref = uv2zeta(c.grid, ref_state)
 
@@ -72,21 +85,61 @@ def plot_vorticity_spaghetti(fig, ax, c, hour, ref_state, ens_states):
         vort_mem = uv2zeta(c.grid, ens_states[m,...])
         ax.contour(c.grid.x, c.grid.y, vort_mem, vort_highlights, colors=[cmap[m][0:3]], linewidths=1)
     ax.contour(c.grid.x, c.grid.y, vort_ref, vort_highlights, colors='k', linewidths=2)
-    ax.set_title(f"Vorticity, $t$={hour:02}h\nTruth(black),ensemble(colors)")
+    ax.set_title(f"Vorticity, $t$={hour:02}h\nTruth(black); ensemble(colors)")
     set_map_axis(ax, c.grid)
     adjust_ax_size(ax,0.8,0.8,0.05)
 
-# def plot_obs(c, obs_rec_id):
-#     obs_seq = c.obs.obs_seq[obs_rec_id]
-#     obs_val = obs_seq['obs']
-#     obs_x = obs_seq['x']
-#     obs_y = obs_seq['y']
-#     grid.plot_scatter(ax[0], obs_val, vmax=vmax, x=obs_x, y=obs_y, is_vector=True, linecolor='k', linewidth=1)
-#     ax[0].plot(obs_x, obs_y, color='k', marker='o', markersize=3, zorder=10)
-#     ax[0].plot(state_x, state_y, color='k', marker='+', markersize=10, zorder=10)
+def plot_histogram(ax, data, bincolor, bin_wd=4, alpha=1.0, orientation='vertical', label=''):
+    nbins = int((max(data) - min(data)) / bin_wd)
+    ax.hist(data, bins=nbins, color=bincolor, orientation=orientation, density=True, alpha=alpha, label=label) 
 
-def plot_spectrum(ax, wn, spec, color, style, width, label):
-    ax.loglog(wn, spec, color=color, linestyle=style, linewidth=width, label=label)
+def plot_bivariate_scatter(state_ens_0, state_ens_1, obs_ens_0, obs_ens_1, obs_val, obs_err, nens, truth_state, i, j):
+    fig = plt.figure(figsize=(10,5))
+    vnames = ['u', 'v']
+    gs = gridspec.GridSpec(3,5)
+    ax_sc = []
+    for v in range(2):
+        ax_sc.append(fig.add_subplot(gs[1:3,v*2:(v+1)*2]))
+    ax_histy = fig.add_subplot(gs[1:3,4], sharey=ax_sc[1])
+    ax_histx = []
+    ax_histx.append(fig.add_subplot(gs[0,0:2], sharex=ax_sc[0]))
+    ax_histx.append(fig.add_subplot(gs[0,2:4], sharex=ax_sc[1], sharey=ax_histx[0]))
+    for v in range(2):
+        plt.setp(ax_histx[v].get_xticklabels(), visible=False)
+    plt.setp(ax_sc[1].get_yticklabels(), visible=False)
+    plt.setp(ax_histx[1].get_yticklabels(), visible=False)
+    plt.setp(ax_histy.get_yticklabels(), visible=False)
+    
+    prior_bin_color = 'c'
+    post_bin_color = [.7, .3, .3]
+    obs_bin_color = 'y'
+
+    # Scatter plot
+    for v in range(2):
+        ax_sc[v].scatter(state_ens_0[:,v,j,i], obs_ens_0, color=prior_bin_color, s=15)
+        ax_sc[v].plot([-50, 50], [obs_val, obs_val], 'y', linewidth=3, alpha=0.5)
+        ax_sc[v].scatter(state_ens_1[:,v,j,i], obs_ens_1, color=post_bin_color, alpha=0.7, s=15)
+        ax_sc[v].plot(np.array([state_ens_0[:,v,j,i], state_ens_1[:,v,j,i]]), np.array([obs_ens_0, obs_ens_1]), 'k', linewidth=0.5, alpha=0.3)
+        ax_sc[v].plot([truth_state[0][v,j,i], truth_state[0][v,j,i]], [-50, 50], 'k-', linewidth=0.5)
+        ax_sc[v].set_xlabel(f"State ${vnames[v]}$ (m/s)")
+        ax_sc[v].set_xlim([-50, 50])
+        ax_sc[v].set_ylim([-50, 50])
+    ax_sc[0].set_ylabel("Obs $u$ (m/s)")
+    
+    # Histogram state u
+    for v in range(2):
+        plot_histogram(ax_histx[v], state_ens_0[:,v,j,i], prior_bin_color)
+        plot_histogram(ax_histx[v], state_ens_1[:,v,j,i], post_bin_color, alpha=0.7)
+    
+    # Histogram obs u
+    plot_histogram(ax_histy, obs_ens_0, prior_bin_color, orientation='horizontal', label='Prior')
+    # simulate obs likelihood with random sampling
+    obs_sample = obs_val + obs_err * np.random.normal(0, 1, nens)
+    plot_histogram(ax_histy, obs_sample, obs_bin_color, orientation='horizontal', alpha=0.5, label='Obs likelihood')
+    plot_histogram(ax_histy, obs_ens_1, post_bin_color, orientation='horizontal', alpha=0.7, label='Posterior')
+    ax_histy.legend(bbox_to_anchor=(1, 1))
+    
+    plt.tight_layout()
 
 def adjust_spec_ax(ax, Lmax, hour):
     ax.set_title(f'Spectrum $t$={hour:02}h')
@@ -99,12 +152,6 @@ def adjust_spec_ax(ax, Lmax, hour):
     ax.set_ylabel(r'$m^2/s^2$')
     ax.grid()
     adjust_ax_size(ax,0.9,0.8,0.05)
-
-# Sawtooth time series of error and ensemble spread
-def plot_ts(ax, n, hours, ts, color, style, width, label='', current_marker=False):
-    ax.plot(hours[0:n+1], ts[0:n+1], color=color, linestyle=style, linewidth=width, label=label)
-    if current_marker:
-        ax.plot(hours[n], ts[n], color='k', marker='+', markersize=10)
 
 def adjust_ts_ax(ax, hours, vmax=20):
     ax.set_title('Domain-avg RMSE,spread')
