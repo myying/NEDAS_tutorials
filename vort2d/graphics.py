@@ -221,7 +221,7 @@ def animation_ui(c, casename, plotname):
                     encoded = base64.b64encode(f.read()).decode("utf-8")
 
                 # Display via HTML string (This bypasses the 404 path error)
-                display(HTML(f'<img src="data:image/png;base64,{encoded}" style="width:100%; max-width:800px;">'))
+                display(HTML(f'<img src="data:image/png;base64,{encoded}" >'))
             except Exception as e:
                 print(f"Error loading frame {i}: {e}")
 
