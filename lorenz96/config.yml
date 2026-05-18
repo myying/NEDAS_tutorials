@@ -17,9 +17,9 @@ timer: True
 call_stack_max_level: 1
 
 time_start: 2001-01-01T00:00:00Z
-time_end: 2001-01-30T00:00:00Z
-time_analysis_start: 2001-01-01T00:00:00Z
-time_analysis_end: 2001-01-28T00:00:00Z
+time_end: 2002-05-16T00:00:00Z
+time_analysis_start: 2001-01-02T00:00:00Z
+time_analysis_end: 2002-05-16T00:00:00Z
 cycle_period: 6
 time:
 obs_time_steps: [0]
@@ -39,8 +39,6 @@ state_def:
 model_def:
   lorenz96:
     config_file:
-    dt: 0.05
-    
     nproc_per_run: 1
     ens_run_strategy: scheduler
     ens_init_dir: '{work_dir}/init_ens'
