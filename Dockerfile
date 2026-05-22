@@ -62,6 +62,10 @@ COPY --from=builder \
     /usr/local/lib/
 COPY --from=builder /lib/x86_64-linux-gnu/libfftw3.so /lib/x86_64-linux-gnu/
 
+COPY entrypoint.sh /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh && \
+    chown appuser:appgroup /usr/local/bin/entrypoint.sh
+
 # Switch to the new user
 USER appuser
 
@@ -80,5 +84,5 @@ EXPOSE 8888
 ENV SHELL=/bin/bash
 
 # Default command
-CMD ["sh", "-c", "jupyter lab --ip=0.0.0.0 --port=8888 --no-browser --ServerApp.token=\"${JUPYTER_TOKEN:-}\" --ServerApp.password=''"]
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
 
