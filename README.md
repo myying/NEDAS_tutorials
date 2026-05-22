@@ -8,7 +8,7 @@ NEDAS provides a light-weight solution for developing new DA algorithms for Eart
 In this series of jupyter notebook tutorials, I demonstrate how to use NEDAS to perform DA research.
 
 To run the notebooks, you can use one of these options:
-[EDITO Datalab](https://datalab.dive.edito.eu/launcher/ide/jupyter-python?name=NEDAS_tutorials&version=2.4.6&s3=region-7e02ff37&git.repository=«https%3A%2F%2Fgithub.com%2Fmyying%2FNEDAS_tutorials»&git.branch=«main»&autoLaunch=true),
+[EDITO Datalab](https://datalab.dive.edito.eu/launcher/ocean-modelling/nedas-tutorials?name=nedas-tutorials&version=1.3.0&autoLaunch=true),
 [Google Colab](https://colab.research.google.com/github/myying/NEDAS_tutorials/),
 [Run in Docker](https://hub.docker.com/r/myying/nedas-tutorials),
 or [Run in native environment](https://github.com/myying/NEDAS_tutorials/blob/main/python_env_setup.md).
