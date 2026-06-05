@@ -1,0 +1,106 @@
+work_dir: qg/work
+
+job_submit:
+  host: local
+  ppn: 16
+
+nproc: 5
+
+nens: 20
+run_forecast: True
+run_analysis: True
+run_diagnose: True
+debug: False
+
+time_start: 2001-01-01T00:00:00Z
+time_end: 2001-01-14T00:00:00Z
+time_analysis_start: 2001-01-03T00:00:00Z
+time_analysis_end: 2001-01-09T00:00:00Z
+cycle_period: 24
+
+obs_time_steps: [0]
+obs_time_scale: 0
+state_time_steps: [0]
+state_time_scale: 0
+
+grid_def:
+  type: qg.fortran
+
+state_def:
+- name: streamfunc
+  model_src: qg.fortran
+  var_type: field
+  err_type: normal
+
+model_def:
+  qg.fortran:
+    config_file: '{nedas_root}/models/qg/fortran/default.yml'
+    model_code_dir: '{nedas_root}/models/qg/fortran'
+    model_env: 'qg/setup_docker.src'
+    ens_run_strategy: scheduler
+    ens_init_dir: '{work_dir}/init_ens'
+    truth_dir: '{work_dir}/truth'
+
+obs_def:
+- name: streamfunc
+  dataset_src: synthetic
+  model_src: qg.fortran
+  nobs: 3000
+  err:
+    type: normal
+    std: 0.2
+  hroi: 100
+  vroi: inf
+  troi: inf
+
+dataset_def:
+  synthetic:
+    model_src: qg.fortran
+    obs_window_min: -6
+    obs_window_max: 0
+
+perturb:
+
+scheme: filter
+
+niter: 1
+iter: 0
+
+assimilator_def:
+  type: ETKF
+
+updator_def:
+  type: additive
+
+covariance_def:
+  type: ensemble
+
+inflation_def:
+  type: post,multiplicative
+  adaptive: False
+  coef: 1.0
+
+localization_def:
+  horizontal:
+    type: gaspari_cohn
+  vertical:
+    type: gaspari_cohn
+  temporal:
+    type: exponential
+
+transform_def:
+- type: scale_bandpass
+  decompose_obs: False
+
+resolution_level: [0]
+character_length: [10]
+localize_scale_fac: [1]
+obs_err_scale_fac: [1]
+
+diag:
+- method: misc.convert_output
+  config_file: '{nedas_root}/diag/misc/convert_output/default.yml'
+  model_src: qg.fortran
+  variables: ['streamfunc', 'temperature', 'vorticity']
+  grid_def:
+  file: '{work_dir}/output/mem{member:03}_b{time:%Y-%m-%d}T{time:%H}.nc'

@@ -93,13 +93,13 @@ inflation_def:
   adaptive: False
   coef: 1.0
 
-localization:
+localization_def:
   horizontal:
     type: gaspari_cohn
   vertical:
     type: gaspari_cohn
   temporal:
-    type: exp
+    type: exponential
 
 transform_def:
   type: identity
