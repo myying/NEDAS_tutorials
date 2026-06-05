@@ -11,7 +11,7 @@ if [ -d "/home/appuser/NEDAS/.git" ]; then
     echo "Updating NEDAS core framework..."
     cd /home/appuser/NEDAS
     # Fetch and merge updates without breaking local editable pip structures
-    git pull
+    git pull || echo "Warning: git pull failed (no network?). Using bundled version."
 else
     echo "Warning: /home/appuser/NEDAS/.git not found. Skipping framework update."
 fi
@@ -22,12 +22,12 @@ TUTORIALS_DIR="/home/appuser/work/NEDAS_tutorials"
 if [ -d "$TUTORIALS_DIR/.git" ]; then
     echo "Updating existing NEDAS tutorials repository..."
     cd "$TUTORIALS_DIR"
-    git pull
+    git pull || echo "Warning: git pull failed (no network?). Using bundled version."
 else
     echo "Tutorials repository missing or detached. Re-cloning..."
-    # Safe backup/creation of the directory tree
     mkdir -p "/home/appuser/work"
-    git clone https://github.com/myying/NEDAS_tutorials.git "$TUTORIALS_DIR"
+    git clone https://github.com/myying/NEDAS_tutorials.git "$TUTORIALS_DIR" || \
+        echo "Warning: git clone failed (no network?). Tutorials directory unavailable."
 fi
 
 # 3. Navigate into the work target directory

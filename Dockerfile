@@ -56,11 +56,15 @@ COPY --from=builder --chown=${USER_ID}:${GROUP_ID} /opt/NEDAS /home/appuser/NEDA
 COPY --from=builder \
     /opt/intel/oneapi/compiler/latest/lib/libimf.so \
     /opt/intel/oneapi/compiler/latest/lib/libintlc.so \
+    /opt/intel/oneapi/compiler/latest/lib/libintlc.so.5 \
     /opt/intel/oneapi/compiler/latest/lib/libsvml.so \
     /opt/intel/oneapi/compiler/latest/lib/libirng.so \
     /opt/intel/oneapi/compiler/latest/lib/libifcoremt.so \
     /usr/local/lib/
-COPY --from=builder /lib/x86_64-linux-gnu/libfftw3.so /lib/x86_64-linux-gnu/
+COPY --from=builder \
+    /lib/x86_64-linux-gnu/libfftw3.so \
+    /lib/x86_64-linux-gnu/libfftw3.so.3 \
+    /lib/x86_64-linux-gnu/
 
 COPY entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh && \
